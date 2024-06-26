@@ -9,29 +9,36 @@ defmodule Project do
 
   def init do
     children = [
-      # The Counter is a child started via Counter.start_link(0)
       %{
         id: Dispatcher,
-        start: {Dispatcher, :start_link, [0]}
+        start: {Dispatcher, :start_link, ["FC7LX25K33J3BQND"]}
+      },
+      %{
+        id: Sensor,
+        start: {InputEvent, :start_link, [0]}
       }
     ]
     Logger.info "Program Started"
-    #{:ok, pid} = GenServer.start_link(Dispatcher, [])
     {:ok, sup_pid} = Supervisor.start_link(children, strategy: :one_for_one)
     Logger.debug "Supervisor started at #{inspect sup_pid}"
+    Supervisor.count_children(sup_pid)
   end
 
-  def hello(pid, key, value) do
+  def hello(key, value) do
 
 
     GenServer.cast(Dispatcher, {:dispatch, key, value})
   end
 
+
   def test do
 
-    Project.hello(pid, "FC7LX25K33J3BQND", 0)
+    Dispatcher.dispatch(5)
+  end
+
+  def test_fail do
+
+    GenServer.call(Dispatcher, 1)
   end
 
 end
-
-Project.init()
