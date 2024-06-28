@@ -15,13 +15,18 @@ defmodule Project do
       },
       %{
         id: Sensor,
-        start: {InputEvent, :start_link, [0]}
+        start: {InputEvent, :start_link, []}
+      },
+      %{
+        id: Setting,
+        start: {Setting, :start_link, [%{"time" => 5_000}]}
       }
     ]
     Logger.info "Program Started"
     {:ok, sup_pid} = Supervisor.start_link(children, strategy: :one_for_one)
     Logger.debug "Supervisor started at #{inspect sup_pid}"
     Supervisor.count_children(sup_pid)
+    Logger.debug "Time between samples is set on #{Setting.get_data("time")}"
   end
 
   def hello(key, value) do

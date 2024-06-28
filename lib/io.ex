@@ -5,9 +5,8 @@ defmodule InputEvent do
   require Logger
   use Task, restart: :permanent
 
-  def start_link(_arg) do
+  def start_link do
     Task.start_link(&loop/0)
-    Agent.start_link(fn -> 5_000 end, name: __MODULE__)
   end
 
   defp sample_and_send do
@@ -21,7 +20,7 @@ defmodule InputEvent do
     receive do
       {:message_type, value} -> Logger.warning value
     after
-      5_000 -> sample_and_send()
+      Setting.get_data("time") -> sample_and_send()
     end
 
     loop()
