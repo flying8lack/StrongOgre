@@ -18,7 +18,7 @@ defmodule InputEvent do
   defp loop do
     #sample every 15 seconds
     receive do
-      {:message_type, value} -> Logger.warning value
+      _ -> Logger.warning "Process recieved a message that was not expecting message!"
     after
       Setting.get_data("time") -> sample_and_send()
     end
