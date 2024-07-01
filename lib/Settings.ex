@@ -1,6 +1,6 @@
 defmodule Setting do
   use Agent
-  def start_link(data) when is_map(data) do
+  def start_link(data) do
     Agent.start_link(fn -> data end, name: __MODULE__)
   end
 
@@ -12,7 +12,7 @@ defmodule Setting do
 
   def set_data(select, value) when is_binary(select) do
 
-    Agent.update(__MODULE__, &(value))
+    Agent.update(__MODULE__, value)
   end
 
 

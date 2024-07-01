@@ -22,8 +22,12 @@ defmodule Dispatcher do
 
   # Client API
 
-  def dispatch(value) do
-    GenServer.cast(Dispatcher, {:dispatch, value})
+  def dispatch(pid, value) do
+    GenServer.cast(Dispatcher, {:dispatch, pid, value})
+  end
+
+  def dispatch_call(value) do
+    GenServer.call(Dispatcher, {:dispatch, value})
   end
   #Server API
 
@@ -33,38 +37,61 @@ defmodule Dispatcher do
     {:ok, %{"key" => api_key}}
   end
 
+  defp push_response(result, return_v, state) do
+    if result == true do
+      Logger.info "Push was successful"
+
+    else
+      Logger.error "PUSH REQUEST FAILED."
+    end
+
+    {:reply, return_v, state}
+
+  end
+
   defp response(e) do
     Logger.info "request successful. Status code: #{e.status_code}"
     Logger.debug "Received response from API (get request)"
+
+
+  end
+
+
+  defp error_response(e,v) do
+    Logger.error "REQUEST FAILED. REASON: #{e.reason}"
+    DataStore.add(v)
   end
 
   @impl true
-  def handle_cast({:dispatch, element}, state) when is_binary(element) do
-    Logger.debug "Received cast request request"
-    resp = HTTPoison.get("https://api.thingspeak.com/update?api_key=" <> state["key"] <> "&field1=" <> element)
-    case resp do
-      {:ok, e} -> response(e)
-      {:error, err} -> Logger.error "REQUEST FAILED. REASON: #{err.reason}"
+  def handle_cast({:dispatch, pid, element}, state) do
+    Logger.debug "Received cast request request from #{inspect pid}"
 
-    end
-
-
-    {:noreply, state}
-  end
-
-  @impl true
-  def handle_cast({:dispatch, element}, state) do
-    Logger.debug "Received cast request request"
     resp = HTTPoison.get("https://api.thingspeak.com/update?api_key=" <> state["key"] <> "&field1=" <> Integer.to_string(element))
     case resp do
       {:ok, e} -> response(e)
-      {:error, err} -> Logger.error "REQUEST FAILED. REASON: #{err.reason}"
+      {:error, err} -> error_response(err, element)
+
+    end
+
+    {:noreply, state}
+
+  end
+
+  @impl true
+  def handle_call({:dispatch, element}, _from, state) do
+    Logger.info "Attempt push by datastore!"
+    resp = HTTPoison.get("https://api.thingspeak.com/update?api_key=" <> state["key"] <> "&field1=" <> Integer.to_string(element))
+    case resp do
+      {:ok, _e} -> push_response(true, true, state)
+      {:error, _err} -> push_response(false, false, state)
 
     end
 
 
-    {:noreply, state}
+
   end
+
+
 
   @doc """
   A call that return data upon request

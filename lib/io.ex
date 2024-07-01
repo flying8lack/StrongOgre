@@ -11,9 +11,10 @@ defmodule InputEvent do
 
   defp sample_and_send do
     sample = 2 + 2
-    Dispatcher.dispatch(sample)
+    Dispatcher.dispatch(self(), sample)
 
   end
+
 
   defp loop do
     #sample every 15 seconds

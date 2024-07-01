@@ -1,11 +1,14 @@
 require Dispatcher
-require Logger
+
 
 
 defmodule Project do
   @moduledoc """
   Documentation for `Project`.
   """
+
+  require Logger
+
 
   def init do
     children = [
@@ -20,13 +23,17 @@ defmodule Project do
       %{
         id: Setting,
         start: {Setting, :start_link, [%{"time" => 5_000}]}
+      },
+      %{
+        id: DataStore,
+        start: {DataStore, :start_link, []}
       }
     ]
     Logger.info "Program Started"
     {:ok, sup_pid} = Supervisor.start_link(children, strategy: :one_for_one)
     Logger.debug "Supervisor started at #{inspect sup_pid}"
     Supervisor.count_children(sup_pid)
-    Logger.debug "Time between samples is set on #{Setting.get_data("time")}"
+    Logger.debug "Time between samples is set on #{Setting.get_data("time")} mili-seconds"
   end
 
   def hello(key, value) do
@@ -36,9 +43,10 @@ defmodule Project do
   end
 
 
-  def test do
+  def set_data(select, value) do
 
-    Dispatcher.dispatch(5)
+    Setting.set_data(select, value)
+    :ok
   end
 
   def test_fail do
