@@ -1,8 +1,14 @@
 defmodule Setting do
+
+  @moduledoc """
+  A module that holds information about the system's configuration
+  """
   use Agent
   def start_link(data) do
     Agent.start_link(fn -> data end, name: __MODULE__)
   end
+
+
 
   def get_data(select \\ "time") when is_binary(select) do
 

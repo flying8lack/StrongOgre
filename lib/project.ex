@@ -34,12 +34,14 @@ defmodule Project do
     Logger.debug "Supervisor started at #{inspect sup_pid}"
     Supervisor.count_children(sup_pid)
     Logger.debug "Time between samples is set on #{Setting.get_data("time")} mili-seconds"
+    test_dispatcher()
   end
 
-  def hello(key, value) do
+  def test_dispatcher do
 
 
-    GenServer.cast(Dispatcher, {:dispatch, key, value})
+    {time, _} = :timer.tc(fn key, value -> GenServer.cast(Dispatcher, {:dispatch, key, value}) end, [self(), 0])
+    Logger.info "Broadcasting took #{time} ms!"
   end
 
 

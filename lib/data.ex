@@ -2,6 +2,11 @@ defmodule DataStore do
   use Agent
   require Logger
 
+  @moduledoc """
+  DataStore is a temprorary storage for data. Any data that was not processed successfully
+  will be stored in the DataStore.
+  """
+
   def start_link do
     Agent.start_link(fn -> [] end, name: __MODULE__)
     Task.start_link(fn -> loop() end)
@@ -11,7 +16,7 @@ defmodule DataStore do
     receive do
       _ -> :ok
     after
-      7_000 -> DataStore.attempt_push()
+      7_000 -> attempt_push()
     end
 
     loop()
@@ -35,9 +40,9 @@ defmodule DataStore do
   end
 
 
-  def attempt_push() do
+  defp attempt_push do
     if length(value()) > 0 do
-      Logger.warning "Attempting to push data..."
+      Logger.warn "Attempting to push data..."
       value() |> push(0)
     end
 
