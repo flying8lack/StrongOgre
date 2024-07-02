@@ -18,7 +18,7 @@ defmodule Setting do
 
   def set_data(select, value) when is_binary(select) do
 
-    Agent.update(__MODULE__, value)
+    Agent.update(__MODULE__, fn _state -> value end)
   end
 
 

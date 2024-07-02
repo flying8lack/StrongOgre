@@ -1,6 +1,3 @@
-require Dispatcher
-
-
 
 defmodule Project do
   @moduledoc """
@@ -34,21 +31,7 @@ defmodule Project do
     Logger.debug "Supervisor started at #{inspect sup_pid}"
     Supervisor.count_children(sup_pid)
     Logger.debug "Time between samples is set on #{Setting.get_data("time")} mili-seconds"
-    test_dispatcher()
-  end
-
-  def test_dispatcher do
-
-
-    {time, _} = :timer.tc(fn key, value -> GenServer.cast(Dispatcher, {:dispatch, key, value}) end, [self(), 0])
-    Logger.info "Broadcasting took #{time} ms!"
-  end
-
-
-  def set_data(select, value) do
-
-    Setting.set_data(select, value)
-    :ok
+    sup_pid
   end
 
   def test_fail do

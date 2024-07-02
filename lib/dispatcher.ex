@@ -51,7 +51,7 @@ defmodule Dispatcher do
 
   defp response(e) do
     Logger.info "request successful. Status code: #{e.status_code}"
-    Logger.debug "Received response from API (get request)"
+    L
 
 
   end
@@ -79,7 +79,7 @@ defmodule Dispatcher do
 
   @impl true
   def handle_call({:dispatch, element}, _from, state) do
-    Logger.info "Attempt push by datastore!"
+    Logger.debug "Attempt push by datastore!"
     resp = HTTPoison.get("https://api.thingspeak.com/update?api_key=" <> state["key"] <> "&field1=" <> Integer.to_string(element))
     case resp do
       {:ok, _e} -> push_response(true, true, state)

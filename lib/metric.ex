@@ -6,12 +6,17 @@ defmodule Metric do
     end
   end
 
-  def save_data(name, value) do
+  defp save_data(name, value) do
     check(name)
     {:ok, file} = File.open!("/metrics/#{name}.txt")
     IO.binwrite(file, Float.to_string(value))
     File.close(file)
 
   end
+
+  def get_current_time do
+    System.system_time(:millisecond)
+  end
+
 
 end
