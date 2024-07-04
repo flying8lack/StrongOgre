@@ -1,4 +1,5 @@
 defmodule Metric do
+  require Logger
 
   defp check(name) do
     if !File.exists?("/metrics/#{name}.txt") do
@@ -8,10 +9,14 @@ defmodule Metric do
 
   defp save_data(name, value) do
     check(name)
-    {:ok, file} = File.open!("/metrics/#{name}.txt")
-    IO.binwrite(file, Float.to_string(value))
+    {:ok, file} = File.open(File.cwd!<>"/metrics/#{name}.txt", [:append])
+    IO.binwrite(file, Integer.to_string(value)<>"\n")
     File.close(file)
+  end
 
+  def save_sending_time(old, new) do
+    save_data("publish_time", new - old)
+    Logger.debug "It took #{new - old} ms to send data"
   end
 
   def get_current_time do

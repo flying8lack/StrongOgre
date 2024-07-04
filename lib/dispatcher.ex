@@ -23,13 +23,15 @@ defmodule Dispatcher do
   # Client API
 
   def dispatch(pid, value) do
-    GenServer.cast(Dispatcher, {:dispatch, pid, value})
+    GenServer.cast(Dispatcher, {:dispatch, pid, value, Metric.get_current_time()})
   end
 
   def dispatch_call(value) do
     GenServer.call(Dispatcher, {:dispatch, value})
   end
   #Server API
+
+
 
   @impl true
   def init(api_key) when is_binary(api_key) do
@@ -51,7 +53,7 @@ defmodule Dispatcher do
 
   defp response(e) do
     Logger.info "request successful. Status code: #{e.status_code}"
-    L
+    Logger.debug "Received response from API (get request)"
 
 
   end
@@ -63,7 +65,7 @@ defmodule Dispatcher do
   end
 
   @impl true
-  def handle_cast({:dispatch, pid, element}, state) do
+  def handle_cast({:dispatch, pid, element, start_time}, state) do
     Logger.debug "Received cast request request from #{inspect pid}"
 
     resp = HTTPoison.get("https://api.thingspeak.com/update?api_key=" <> state["key"] <> "&field1=" <> Integer.to_string(element))
@@ -72,6 +74,8 @@ defmodule Dispatcher do
       {:error, err} -> error_response(err, element)
 
     end
+    Metric.save_sending_time(start_time,Metric.get_current_time())
+
 
     {:noreply, state}
 
@@ -79,7 +83,7 @@ defmodule Dispatcher do
 
   @impl true
   def handle_call({:dispatch, element}, _from, state) do
-    Logger.debug "Attempt push by datastore!"
+    Logger.info "Attempt push by datastore!"
     resp = HTTPoison.get("https://api.thingspeak.com/update?api_key=" <> state["key"] <> "&field1=" <> Integer.to_string(element))
     case resp do
       {:ok, _e} -> push_response(true, true, state)
