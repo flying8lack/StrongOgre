@@ -5,7 +5,7 @@ if [ "$#" -ne 1 ]; then
     exit 1
 fi
 
-cp -a ./lib/. $1
+cp -a ./lib/. $1/lib/.
 if ["$#" -eq 0]; then
   echo "Copy is compelete!"
 else
