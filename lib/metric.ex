@@ -7,6 +7,28 @@ defmodule Metric do
     end
   end
 
+  defp ping_server(host, port) do
+    {time, _} = :timer.tc(fn ->
+      {:ok, socket} = :gen_tcp.connect(host, port, [])
+      :ok = :gen_tcp.close(socket)
+    end)
+
+    # Convert microseconds to milliseconds
+    time / 1_000
+  end
+
+  def check_average_ping do
+    avg = check_average_ping("www.google.com", 22)/22
+  end
+
+  def check_average_ping(host, n) when n > 0 do
+    ping_server(host, 80) + check_average_ping(host, n - 1)
+  end
+
+  def check_average_ping(host, 0) do
+    ping_server(host, 80)
+  end
+
   defp save_data(name, value) do
     check(name)
     {:ok, file} = File.open(File.cwd!<>"/metrics/#{name}.txt", [:append])
