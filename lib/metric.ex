@@ -8,13 +8,13 @@ defmodule Metric do
   end
 
   defp ping_server(host, port) do
-    {time, _} = :timer.tc(fn ->
-      {:ok, socket} = :gen_tcp.connect(host, port, [])
-      :ok = :gen_tcp.close(socket)
+    {t, _} = :timer.tc(fn ->
+      {:ok, sock} = :gen_tcp.connect(host, port, [])
+      :ok = :gen_tcp.close(sock)
     end)
 
     # Convert microseconds to milliseconds
-    time / 1_000
+    t / 1_000
   end
 
   def check_average_ping do
