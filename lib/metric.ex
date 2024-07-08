@@ -18,7 +18,7 @@ defmodule Metric do
   end
 
   def check_average_ping do
-    avg = check_average_ping("www.google.com", 22)/22
+    avg = check_average_ping("www.google.com", 21)/22
   end
 
   def check_average_ping(host, n) when n > 0 do
