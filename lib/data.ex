@@ -16,7 +16,7 @@ defmodule DataStore do
     receive do
       _ -> :ok
     after
-      7_000 -> attempt_push()
+      500 -> attempt_push()
     end
 
     loop()
@@ -28,14 +28,13 @@ defmodule DataStore do
 
   def add(v) do
     Logger.info "Added data to DataStore"
-    Agent.update(__MODULE__, &([v|&1]))
+    Agent.update(__MODULE__, fn state -> [v|state] end)#&([v|&1]))
 
   end
 
   def update_all(v) do
     Logger.info "Added data to DataStore"
     Agent.update(__MODULE__, fn _state -> v end)
-    :ok
 
   end
 
@@ -43,7 +42,7 @@ defmodule DataStore do
   defp attempt_push do
     if length(value()) > 0 do
       Logger.warn "Attempting to push data..."
-      value() |> push(0)
+      value() |> Enum.reverse |> push(0)
     end
 
 
@@ -61,6 +60,7 @@ defmodule DataStore do
     else
       Logger.error "Push failed. Only #{n} items were pushed!"
       Agent.get(__MODULE__, fn _s -> [head | tail] end)
+      :error
     end
 
 

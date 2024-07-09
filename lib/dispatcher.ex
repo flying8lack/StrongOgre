@@ -32,11 +32,10 @@ defmodule Dispatcher do
   #Server API
 
 
-
   @impl true
   def init(api_key) when is_binary(api_key) do
     Logger.info "Server has configured to API_KEY: #{api_key}"
-    {:ok, %{"key" => api_key}}
+    {:ok, %{"key" => api_key, "data_store" => false}}
   end
 
   defp push_response(result, return_v, state) do
@@ -51,11 +50,25 @@ defmodule Dispatcher do
 
   end
 
-  defp response(e) do
+  defp response(e, start_time) do
     Logger.info "request successful. Status code: #{e.status_code}"
     Logger.debug "Received response from API (get request)"
+    Metric.save_sending_time(start_time,Metric.get_current_time())
 
+  end
 
+  @impl true
+  def handle_info({:EXIT, pid, reason, _data}, state) do
+    start_time = :ets.info(pid, :timestamp) || :undefined
+    current_time = Process.timestamp()
+
+    recovery_time = if start_time != :undefined do
+                       current_time - start_time
+                     else
+                       :undefined
+                     end
+
+    {:noreply, state, {:info, "Child process #{pid} terminated with reason: #{reason}. Recovery time: #{recovery_time}"}}
   end
 
 
@@ -65,19 +78,35 @@ defmodule Dispatcher do
   end
 
   @impl true
-  def handle_cast({:dispatch, pid, element, start_time}, state) do
-    Logger.debug "Received cast request request from #{inspect pid}"
+  def handle_cast(:shutdown, state) do
 
-    resp = HTTPoison.get("https://api.thingspeak.com/update?api_key=" <> state["key"] <> "&field1=" <> Integer.to_string(element))
-    case resp do
-      {:ok, e} -> response(e)
-      {:error, err} -> error_response(err, element)
+    raise "SYSTEM ERROR SIMULATION!"
 
-    end
-    Metric.save_sending_time(start_time,Metric.get_current_time())
 
 
     {:noreply, state}
+
+
+  end
+
+  @impl true
+  def handle_cast({:dispatch, pid, element, start_time}, state) do
+    Logger.debug "Received cast request request from #{inspect pid}"
+
+
+
+    resp = HTTPoison.get("https://api.thingspeak.com/update?api_key=" <> state["key"] <> "&field1=" <> Integer.to_string(element))
+    case resp do
+      {:ok, e} -> response(e, start_time)
+      {:error, err} -> error_response(err, element)
+
+    end
+
+
+
+
+    {:noreply, state}
+
 
   end
 

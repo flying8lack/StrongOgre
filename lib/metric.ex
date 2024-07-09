@@ -19,6 +19,8 @@ defmodule Metric do
 
   def check_average_ping do
     avg = check_average_ping("www.google.com", 21)/22
+    Logger.info "Average ping is #{avg} ms!"
+    avg #return the average
   end
 
   def check_average_ping(host, n) when n > 0 do
