@@ -9,12 +9,16 @@ defmodule InputEvent do
     Task.start_link(fn -> loop(pin) end)
   end
 
-  defp sample_and_send(_pin) do
-    sample = 2 + 2
-    Dispatcher.dispatch(self(), sample)
-
+  defp sample_and_send(pin) when is_integer(pin) do
+      Dispatcher.dispatch(self(), :rand.uniform())
   end
 
+  defp sample_and_send(pin)  do
+    {:ok, field} = Circuits.GPIO.open(pin, :input)
+    sample = Circuits.GPIO.read(field)
+    Dispatcher.dispatch(self(), sample)
+    Circuits.GPIO.close(field)
+  end
 
   defp loop(pin) do
     #sample every 15 seconds

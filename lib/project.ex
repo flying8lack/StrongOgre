@@ -34,11 +34,10 @@ defmodule Project do
     {:ok, sup_pid} = Supervisor.start_link(children, options)
 
     Logger.debug "Supervisor started at #{inspect sup_pid}"
-    Supervisor.count_children(sup_pid)
     Logger.debug "Time between samples is set on #{Setting.get_data("time")} mili-seconds"
     #Metric.check_average_ping()
     Setting.set_data("sup_id", sup_pid)
-    Logger.critical Process.alive?(sup_pid)
+    #Logger.critical Process.alive?(sup_pid)
 
 
   end
@@ -69,3 +68,5 @@ defmodule Project do
   end
 
 end
+
+Project.init()

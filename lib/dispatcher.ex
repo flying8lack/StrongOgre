@@ -57,20 +57,6 @@ defmodule Dispatcher do
 
   end
 
-  @impl true
-  def handle_info({:EXIT, pid, reason, _data}, state) do
-    start_time = :ets.info(pid, :timestamp) || :undefined
-    current_time = Process.timestamp()
-
-    recovery_time = if start_time != :undefined do
-                       current_time - start_time
-                     else
-                       :undefined
-                     end
-
-    {:noreply, state, {:info, "Child process #{pid} terminated with reason: #{reason}. Recovery time: #{recovery_time}"}}
-  end
-
 
   defp error_response(e,v) do
     Logger.error "REQUEST FAILED. REASON: #{e.reason}"
