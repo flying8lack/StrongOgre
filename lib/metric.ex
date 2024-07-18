@@ -47,5 +47,12 @@ defmodule Metric do
     System.system_time(:millisecond)
   end
 
+  def save_network_mttr(old, new) do
+    save_data("network_mttr", new - old)
+  end
+
+  def save_network_mtbf(old, new) do #mean time before failure
+    save_data("network_mtbf", new - old)
+  end
 
 end

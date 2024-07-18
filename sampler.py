@@ -1,5 +1,7 @@
 import time
 import psutil  # Import for CPU usage measurement
+import RPi.GPIO as GPIO
+import requests
 
 # Replace with your Thingspeak channel details
 API_KEY = "YOUR_THINGSPEAK_API_KEY"
@@ -10,7 +12,7 @@ FIELD_1 = 1  # Field number for sensor data (adjust if needed)
 def read_sensor(pin):
     # Replace this with your sensor-specific code
     # Example for GPIO pin reading (adjust pin number):
-    import RPi.GPIO as GPIO
+    
     GPIO.setmode(GPIO.BCM)
     GPIO.setup(pin, GPIO.IN)
     sensor_value = GPIO.input(pin)  # Read digital value (0 or 1)
@@ -19,7 +21,7 @@ def read_sensor(pin):
 
 
 def send_data_to_thingspeak(sensor_data):
-    import requests
+    
 
     url = f"https://api.thingspeak.com/update?api_key={API_KEY}&field={FIELD_1}&value={sensor_data}"
     try:

@@ -3,7 +3,7 @@ defmodule Project do
   @moduledoc """
   Documentation for `Project`.
   """
-
+  require Dispatcher
   require Logger
 
 
@@ -15,7 +15,7 @@ defmodule Project do
       },
       %{
         id: Sensor,
-        start: {InputEvent, :start_link, ["GPIO12"]}
+        start: {InputEvent, :start_link, [0]}
       },
       %{
         id: Setting,
@@ -24,6 +24,10 @@ defmodule Project do
       %{
         id: DataStore,
         start: {DataStore, :start_link, []}
+      },
+      %{
+        id: NetworkMonitor,
+        start: {NetworkMonitor, :start_link, []}
       }
     ]
 
@@ -44,23 +48,6 @@ defmodule Project do
 
   def stop do
     Supervisor.stop(Setting.get_data("sup_id"))
-  end
-
-
-  def handle_restart({:info, :terminated, pid, reason, _data}) do
-
-    start_time = :ets.info(pid, :timestamp) || :undefined
-    current_time = Process.timestamp()
-
-    recovery_time = if start_time != :undefined do
-      current_time - start_time
-    else
-      :undefined
-    end
-
-    Logger.error "Child process #{pid} terminated with reason: #{reason}. Recovery time: #{recovery_time}"
-
-    {:restart, reason, {:info, "Child process #{pid} terminated with reason: #{reason}. Recovery time: #{recovery_time}"}}
   end
 
   def test_fail do

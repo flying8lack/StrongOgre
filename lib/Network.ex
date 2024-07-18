@@ -1,30 +1,24 @@
 defmodule NetworkMonitor do
   def start_link do
-    Task.start_link(fn -> monitor_network end)
+    Task.start_link(fn -> loop(:up, Metric.get_current_time()) end)
   end
 
-  defp monitor_network do
-    loop(:up, 0)
-  end
 
-  defp loop(:up, downtime) do
-    if connected? do
-      if downtime > 0 do
-        IO.puts "Network was down for #{downtime} seconds"
-      end
-      :timer.sleep(1000)
-      loop(:up, 0)
+  def loop(:down, old) do
+    if connected?() do
+      Metric.save_network_mttr(old, Metric.get_current_time())
+      loop(:up, Metric.get_current_time())
     else
-      loop(:down, downtime)
+      loop(:down, old)
     end
   end
 
-  defp loop(:down, downtime) do
-    :timer.sleep(1000)
-    if connected? do
-      loop(:up, downtime)
+  def loop(:up, last_fail) do
+    if not connected?() do
+      Metric.save_network_mtbf(last_fail, Metric.get_current_time())
+      loop(:down, Metric.get_current_time)
     else
-      loop(:down, downtime + 1)
+      loop(:up, last_fail) #tail call
     end
   end
 
