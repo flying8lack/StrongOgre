@@ -26,9 +26,9 @@ defmodule DataStore do
     Agent.get(__MODULE__, & &1)
   end
 
-  def add(v) do
+  def add(v, key) do
     Logger.info "Added data to DataStore"
-    Agent.update(__MODULE__, fn state -> [v|state] end)#&([v|&1]))
+    Agent.update(__MODULE__, fn state -> [[v, key]|state] end)#&([v|&1]))
 
   end
 
@@ -52,7 +52,7 @@ defmodule DataStore do
 
   defp push([head | tail], n) do
     #loops and dispatch data in the list
-    result = Dispatcher.dispatch_call(head)
+    result = Dispatcher.dispatch_call(Enum.at(head, 0), Enum.at(head, 1))
 
 
     if result == true do

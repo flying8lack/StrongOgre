@@ -14,8 +14,12 @@ defmodule Project do
         start: {Dispatcher, :start_link, ["FC7LX25K33J3BQND"]}
       },
       %{
-        id: Sensor,
-        start: {InputEvent, :start_link, [0]}
+        id: Sensor_1,
+        start: {InputEvent, :start_link, [0, "FC7LX25K33J3BQND"]}
+      },
+      %{
+        id: Sensor_2,
+        start: {InputEvent, :start_link, [0, "FC7LX25K33J3BQND"]}
       },
       %{
         id: Setting,
