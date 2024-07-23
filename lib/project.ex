@@ -5,6 +5,11 @@ defmodule Project do
   """
   require Dispatcher
   require Logger
+  use Application
+
+  def start(_type, _args) do
+    {:ok, Project.init()}
+  end
 
 
   def init do
@@ -19,11 +24,11 @@ defmodule Project do
       },
       %{
         id: Sensor_2,
-        start: {InputEvent, :start_link, [0, "FC7LX25K33J3BQND"]}
+        start: {InputEvent, :start_link, [0, "L430BCFQBKNEQ7O5"]}
       },
       %{
         id: Setting,
-        start: {Setting, :start_link, [%{"time" => 5_000}]}
+        start: {Setting, :start_link, [%{"time" => 1_000, "minimum_fault_detection" => 6}]}
       },
       %{
         id: DataStore,
@@ -46,7 +51,7 @@ defmodule Project do
     #Metric.check_average_ping()
     Setting.set_data("sup_id", sup_pid)
     #Logger.critical Process.alive?(sup_pid)
-
+    sup_pid
 
   end
 
@@ -59,5 +64,3 @@ defmodule Project do
   end
 
 end
-
-Project.init()
