@@ -13,7 +13,7 @@ defmodule Project do
 
 
   def init do
-    children = [
+    children  = [
       %{
         id: Dispatcher,
         start: {Dispatcher, :start_link, ["FC7LX25K33J3BQND"]}
@@ -40,9 +40,10 @@ defmodule Project do
       }
     ]
 
+
     options =  [strategy: :one_for_one,
-     max_restarts: 5,
-    max_seconds: 10]
+     max_restarts: 10,
+    max_seconds: 5]
     Logger.info "Program Started"
     {:ok, sup_pid} = Supervisor.start_link(children, options)
 
@@ -53,6 +54,12 @@ defmodule Project do
     #Logger.critical Process.alive?(sup_pid)
     sup_pid
 
+  end
+
+
+
+  def add_processes(n) do
+    1..n |> Task.async_stream(fn _ -> InputEvent.start_link(0, "FC7LX25K33J3BQND") end) |> Enum.map(fn {:ok, pid} -> Process.link(pid) end)
   end
 
   def stop do
