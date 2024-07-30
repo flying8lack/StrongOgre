@@ -19,7 +19,6 @@ defmodule InputEvent do
   defp add_value(v, state, pid) do
     #check if the past number of values excedded the maximum amount (4). if it is, it will remove the oldest value.
     #it will update the new state.
-    Logger.debug "Add value to state. current state length: #{Enum.count(state)}"
     if Enum.count(state) > Setting.get_data("minimum_fault_detection") do
       new_state = [v | state] |> Enum.drop( Setting.get_data("minimum_fault_detection")  - Enum.count(state) )
       send(pid, {new_state})
@@ -34,7 +33,7 @@ defmodule InputEvent do
     if !is_fault?(sample, state) do
       Dispatcher.dispatch(self(), sample, key)
     else
-      Logger.critical("STUCK AT FAULT #{sample} SENSOR #{pin}")
+      Logger.warn "SENSOR #{pin} COULD BE STUCK!"
     end
     add_value(sample,state, pid)
   end

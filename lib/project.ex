@@ -28,7 +28,7 @@ defmodule Project do
       },
       %{
         id: Setting,
-        start: {Setting, :start_link, [%{"time" => 1_000, "minimum_fault_detection" => 6}]}
+        start: {Setting, :start_link, [%{"time" => 250, "minimum_fault_detection" => round(90/0.25)}]}
       },
       %{
         id: DataStore,
@@ -42,7 +42,7 @@ defmodule Project do
 
 
     options =  [strategy: :one_for_one,
-     max_restarts: 10,
+     max_restarts: 15,
     max_seconds: 5]
     Logger.info "Program Started"
     {:ok, sup_pid} = Supervisor.start_link(children, options)

@@ -1,5 +1,5 @@
 defmodule DataStore do
-  use Agent
+  use Agent, restart: :permanent
   require Logger
 
   @moduledoc """

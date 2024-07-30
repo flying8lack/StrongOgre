@@ -34,8 +34,8 @@ defmodule Dispatcher do
 
   @impl true
   def init(api_key) when is_binary(api_key) do
-    Logger.info "Server has configured to API_KEY: #{api_key}"
-    {:ok, %{"key" => api_key, "data_store" => false}}
+    Logger.info "Server has configured!"
+    {:ok, %{"key" => api_key, "data_store" => []}}
   end
 
   defp push_response(result, return_v, state) do
@@ -82,8 +82,8 @@ defmodule Dispatcher do
     Logger.debug "Received cast request request from #{inspect pid}: #{element}"
 
 
-
     resp = HTTPoison.get("https://api.thingspeak.com/update?api_key=" <> key <> "&field1=" <> Float.to_string(element))
+    #Tortoise.publish(MyClient, "channels/33301/publish/fields/field1", Float.to_string(element))
     case resp do
       {:ok, e} -> response(e, start_time)
       {:error, err} -> error_response(err, element, key)
