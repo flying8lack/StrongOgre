@@ -1,0 +1,5 @@
+1. go and type "sudo nano /etc/rc.local" to edit the file
+2. before the "exit 0" add the command i.e "python3 /home/pi/myscript.py &"
+3. if the program is run forever add the "&" at the end of the code !!!IMPORTANT!!!
+4. save file
+5. reboot and test
