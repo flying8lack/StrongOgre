@@ -1,6 +1,11 @@
 defmodule DataStore do
-  use Agent
+  use Agent, restart: :permanent
   require Logger
+
+  @moduledoc """
+  DataStore is a temprorary storage for data. Any data that was not processed successfully
+  will be stored in the DataStore.
+  """
 
   def start_link do
     Agent.start_link(fn -> [] end, name: __MODULE__)
@@ -11,7 +16,7 @@ defmodule DataStore do
     receive do
       _ -> :ok
     after
-      7_000 -> DataStore.attempt_push()
+      500 -> attempt_push()
     end
 
     loop()
@@ -21,24 +26,23 @@ defmodule DataStore do
     Agent.get(__MODULE__, & &1)
   end
 
-  def add(v) do
+  def add(v, key) do
     Logger.info "Added data to DataStore"
-    Agent.update(__MODULE__, &([v|&1]))
+    Agent.update(__MODULE__, fn state -> [[v, key]|state] end)#&([v|&1]))
 
   end
 
   def update_all(v) do
     Logger.info "Added data to DataStore"
     Agent.update(__MODULE__, fn _state -> v end)
-    :ok
 
   end
 
 
-  def attempt_push() do
+  defp attempt_push do
     if length(value()) > 0 do
-      Logger.warning "Attempting to push data..."
-      value() |> push(0)
+      Logger.warn "Attempting to push data..."
+      value() |> Enum.reverse |> push(0)
     end
 
 
@@ -48,7 +52,7 @@ defmodule DataStore do
 
   defp push([head | tail], n) do
     #loops and dispatch data in the list
-    result = Dispatcher.dispatch_call(head)
+    result = Dispatcher.dispatch_call(Enum.at(head, 0), Enum.at(head, 1))
 
 
     if result == true do
@@ -56,6 +60,7 @@ defmodule DataStore do
     else
       Logger.error "Push failed. Only #{n} items were pushed!"
       Agent.get(__MODULE__, fn _s -> [head | tail] end)
+      :error
     end
 
 

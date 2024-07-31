@@ -22,19 +22,20 @@ defmodule Dispatcher do
 
   # Client API
 
-  def dispatch(pid, value) do
-    GenServer.cast(Dispatcher, {:dispatch, pid, value})
+  def dispatch(pid, value, key) do
+    GenServer.cast(Dispatcher, {:dispatch, pid, value, key, Metric.get_current_time()})
   end
 
-  def dispatch_call(value) do
-    GenServer.call(Dispatcher, {:dispatch, value})
+  def dispatch_call(value, key) do
+    GenServer.call(Dispatcher, {:dispatch, value, key})
   end
   #Server API
 
+
   @impl true
   def init(api_key) when is_binary(api_key) do
-    Logger.info "Server has configured to API_KEY: #{api_key}"
-    {:ok, %{"key" => api_key}}
+    Logger.info "Server has configured!"
+    {:ok, %{"key" => api_key, "data_store" => []}}
   end
 
   defp push_response(result, return_v, state) do
@@ -49,38 +50,94 @@ defmodule Dispatcher do
 
   end
 
-  defp response(e) do
+
+
+  defp response(e, start_time) do
     Logger.info "request successful. Status code: #{e.status_code}"
     Logger.debug "Received response from API (get request)"
-
+    Metric.save_sending_time(start_time,Metric.get_current_time())
 
   end
 
 
-  defp error_response(e,v) do
+  defp error_response(e,v, key) do
     Logger.error "REQUEST FAILED. REASON: #{e.reason}"
-    DataStore.add(v)
+    DataStore.add(v, key)
   end
 
   @impl true
-  def handle_cast({:dispatch, pid, element}, state) do
-    Logger.debug "Received cast request request from #{inspect pid}"
+  def handle_cast(:shutdown, state) do
 
-    resp = HTTPoison.get("https://api.thingspeak.com/update?api_key=" <> state["key"] <> "&field1=" <> Integer.to_string(element))
-    case resp do
-      {:ok, e} -> response(e)
-      {:error, err} -> error_response(err, element)
+    raise "SYSTEM ERROR SIMULATION!"
 
-    end
+
 
     {:noreply, state}
 
+
   end
 
   @impl true
-  def handle_call({:dispatch, element}, _from, state) do
+  def handle_cast({:dispatch, pid, element, key, start_time}, state) when is_float(element) do
+    Logger.debug "Received cast request request from #{inspect pid}: #{element}"
+
+
+    resp = HTTPoison.get("https://api.thingspeak.com/update?api_key=" <> key <> "&field1=" <> Float.to_string(element))
+    #Tortoise.publish(MyClient, "channels/33301/publish/fields/field1", Float.to_string(element))
+    case resp do
+      {:ok, e} -> response(e, start_time)
+      {:error, err} -> error_response(err, element, key)
+
+    end
+
+
+
+
+    {:noreply, state}
+
+
+  end
+
+  @impl true
+  def handle_cast({:dispatch, pid, element, key, start_time}, state) do
+    Logger.debug "Received cast request request from #{inspect pid}: #{element}"
+
+
+
+    resp = HTTPoison.get("https://api.thingspeak.com/update?api_key=" <> key <> "&field1=" <> Integer.to_string(element))
+    case resp do
+      {:ok, e} -> response(e, start_time)
+      {:error, err} -> error_response(err, element, key)
+
+    end
+
+
+
+
+    {:noreply, state}
+
+
+  end
+
+  @impl true
+  def handle_call({:dispatch, element, key}, _from, state) when is_float(element) do
     Logger.info "Attempt push by datastore!"
-    resp = HTTPoison.get("https://api.thingspeak.com/update?api_key=" <> state["key"] <> "&field1=" <> Integer.to_string(element))
+    resp = HTTPoison.get("https://api.thingspeak.com/update?api_key=" <> key <> "&field1=" <> Float.to_string(element))
+    case resp do
+      {:ok, _e} -> push_response(true, true, state)
+      {:error, _err} -> push_response(false, false, state)
+
+    end
+
+
+
+  end
+
+
+  @impl true
+  def handle_call({:dispatch, element, key}, _from, state) do
+    Logger.info "Attempt push by datastore!"
+    resp = HTTPoison.get("https://api.thingspeak.com/update?api_key=" <> key <> "&field1=" <> Integer.to_string(element))
     case resp do
       {:ok, _e} -> push_response(true, true, state)
       {:error, _err} -> push_response(false, false, state)
